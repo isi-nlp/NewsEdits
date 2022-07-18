@@ -30,10 +30,11 @@ In this repo, we:
 2. Provide demo notebooks to load and visualize the data in the `demo_notebooks/` folder.     
 3. Provide Spark scripts to process new datasets in the `spark/` folder.
 4. Provide model code (to come).  
+
+We are working hard to put the final touches on this repo and we hope in the next weeks to be finished. Please reach out to `spangher@usc.edu` with any issues, questions, data requests, etc. and we will prioritise your enquiries. 
     
 
 ![Demo](img/sentence-diagram.png) 
-
 
 If you've found any of this useful or inspiring, please
 

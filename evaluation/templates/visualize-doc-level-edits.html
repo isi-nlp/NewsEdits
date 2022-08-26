@@ -1,0 +1,873 @@
+<!-- YOUR HTML BEGINS -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+</head>
+<link type="text/css" href="https://getbootstrap.com/1.0.0/assets/css/bootstrap-1.0.0.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://creativecouple.github.io/jquery-timing/jquery-timing.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
+<!-- ContextMenu -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.ui.position.js"></script>
+
+<!-- alertify -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/alertify.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/css/alertify.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/css/themes/bootstrap.min.css">
+<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/css/themes/default.css"> -->
+
+<script src="https://cdn.jsdelivr.net/gh/qiao/difflib.js/dist/difflib-browser.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/musclesoft/jquery-connections/jquery.connections.js"></script>
+
+<style>
+    .hidden {
+    transition: opacity 1s ease-out;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.example{
+    background-color: #efefef;
+    margin-left: 20px;
+    margin-right: 50px;
+    padding: 10px;
+    padding-bottom: 1px;
+}
+
+.highlighted {
+	background-color: yellow;
+}
+
+.text-mouseover{
+	border-style: solid;
+}
+
+#moving_div {
+	position: fixed;
+	width: 1px;
+	height: 1px;
+	z-index: -1;
+}
+.moving_line {
+	z-index: -1;
+}
+
+/* Handle the question text-boxes */
+.textblock {
+  border-radius: 4px;
+  background: rgba(237, 245, 241, 0.87);
+  display: inline-block;
+  border: 2px solid Black;
+  padding: 5px 10px 5px 10px;
+  margin: 10px 10px 10px 10px;
+  z-index: 1;
+}
+
+
+.textblock_pool {
+	height: 200px;
+}
+
+.textblock_span {
+	padding-right: 10px;
+}
+
+.subset-subj {
+	background: rgba(175, 255, 141, 0.6);
+	background-color: rgba(175, 255, 141, 0.6);
+}
+
+/* handle line styles*/
+.connection {
+	border: 8px double;
+    /*border-width: 2.5px;*/
+	z-index: 0;
+	/*display: table;*/
+	border-radius: 100%;
+	/*pointer-events:none;*/
+	color: rgb(200, 200, 200);
+	color: rgba(0, 0, 0, 0.7);
+}
+
+.shaded {
+	border-color: #55f;
+    /*border-radius: 20px;*/
+    /*border-width: 5px;*/
+}
+
+.dropdown-menu {
+    position: absolute;
+    z-index: 100;
+}
+
+
+.deleted{
+    background-color:rgba(241,114,114,0.68)
+}
+
+.added{
+    background-color:rgba(175, 255, 141, 0.6);
+}
+
+.annotation{
+    height: 50%;
+}
+
+#submitButton{
+    z-index: 5;
+}
+
+#feedback{
+    width: 100%;
+}
+
+hr.hr-medium{
+    border: 3px solid black;
+}
+
+body{
+    margin: 10px !important;
+}
+
+/* arrows */
+.arrow {
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 3px;
+  position: relative;
+}
+
+.right {
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+}
+
+.left {
+  transform: rotate(135deg);
+  -webkit-transform: rotate(135deg);
+}
+
+.up {
+  transform: rotate(-135deg);
+  -webkit-transform: rotate(-135deg);
+}
+
+.down {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+
+</style>
+<!-- jquery connections -->
+<body>
+
+
+<form name='mturk_form' method='post' id='mturk_form' action='/mturk/externalSubmit'>
+<input type='hidden' value='' name='assignmentId' id='assignmentId'/>
+
+<div class="table table-hover container">
+    <p>Article Key: {{ doc_id }}</p>
+    <br>
+    <div class="row header">
+        <div class="col-5"><h4>Old Version</h4></div>
+        <div class="col-2"></div>
+        <div class="col-5"><h4>New Version</h4></div>
+    </div>
+    <div class="row text" >
+        <div class="col-4 textblock_pool_version_x" doc_id="{{ doc_id }}" ></div>
+        <div class="col-1 filler" doc_id="{{ doc_id }}" ></div>
+        <div class="col-4 textblock_pool_version_y" doc_id="{{ doc_id }}" ></div>
+    </div>
+
+<script language='Javascript'>
+
+    function get_word_diff_ratio(s_old, s_new) {
+        var s_old_words = s_old.split(' ')
+        var s_new_words = s_new.split(' ')
+        var s = new difflib.SequenceMatcher(null, s_old_words, s_new_words)
+        return s.ratio()
+    }
+
+    function get_list_diff(l_old, l_new){
+        var vars_old = []
+        var vars_new = []
+        var diffs = difflib.ndiff(l_old, l_new)
+        var in_question = false
+        diffs.forEach(function(item, idx){
+            var label = item[0]
+            var text = item.slice(2)
+            if (label == '?'){
+                return
+            }
+
+            else if (label == '-'){
+                vars_old.push({
+                    'text': text,
+                    'tag': '-'
+                })
+                if (
+                        // if something is removed from the old sentence, a '?' will be present in the next idx
+                        ((idx < diffs.length - 1) && (diffs[idx + 1][0] == '?'))
+                        // if NOTHING is removed from the old sentence, a '?' might still be present in 2 idxs, unless the next sentence is a - as well.
+                     || ((idx < diffs.length - 2) && (diffs[idx + 2][0] == '?') && (diffs[idx + 1][0] != '-'))
+                ){
+                    in_question = true
+                    return
+                }
+                // test if the sentences are substantially similar, but for some reason ndiff marked them as different.
+                if ((idx < (diffs.length - 1)) && (diffs[idx + 1][0] == '+')){
+                    var text_new = diffs[idx + 1].slice(2)
+                    if (get_word_diff_ratio(text, text_new) > .8) {
+                        in_question = true
+                        return
+                    }
+                }
+                vars_new.push({
+                    'text': '',
+                    'tag': ' '
+                })
+            }
+            else if (label == '+'){
+                vars_new.push({
+                    'text': text,
+                    'tag': '+'
+                })
+                if (in_question){
+                    in_question = false
+                }
+                else{
+                    vars_old.push({
+                        'text':'',
+                        'tag': ' '
+                    })
+                }
+            }
+            else {
+                vars_old.push({
+                    'text': text,
+                    'tag': ' '
+                })
+                vars_new.push({
+                    'text': text,
+                    'tag': ' '
+                })
+            }
+        })
+        return [vars_old, vars_new]
+    }
+
+    function get_word_diffs(s_old, s_new) {
+        var s_old_words = s_old.split(' ')
+        var s_new_words = s_new.split(' ')
+        return get_list_diff(s_old_words, s_new_words)
+    }
+
+    function html_compare_sentences(old_sent, new_sent) {
+        var sents = get_word_diffs(old_sent, new_sent)
+        old_sent = sents[0]
+        new_sent = sents[1]
+        var new_html = []
+        var old_html = []
+        var max_idx = Math.max(old_sent.length, new_sent.length)
+        for (var idx = 0; idx < max_idx; idx++) {
+            var w_old = old_sent[idx]
+            var w_new = new_sent[idx]
+            if (w_old['tag'] == '-') {
+                old_html.push('<span class="deleted">' + w_old['text'] + '</span>')
+            } else {
+                old_html.push(w_old['text'])
+            }
+            if (w_new['tag'] == '+') {
+                new_html.push('<span class="added">' + w_new['text'] + ' </span>')
+            } else {
+                new_html.push(w_new['text'])
+            }
+        }
+        return [old_html.join(' '), new_html.join(' ')]
+    }
+
+    textblockpool_class_mapper= {
+        'x': '.textblock_pool_version_x',
+        'y': '.textblock_pool_version_y'
+    }
+
+    $('#otherbutton').on('click', function(d){
+        $('#otherform').removeClass('hidden')
+    })
+
+    $('#otherform').on('click', function(d){
+        $('#error_btn_grp').find('label').removeClass('active')
+        $('#otherbutton').addClass('active')
+    })
+
+    $('#otherbutton2').on('click', function(d){
+        $('#otherform2').removeClass('hidden')
+    })
+
+    $('#otherform2').on('click', function(d){
+        $('#law_type_btn_grp').find('label').removeClass('active')
+        $('#otherbutton2').addClass('active')
+    })
+
+    var window_height = $( window ).height();
+    String.prototype.replaceAll = function(search, replacement) {
+        var target = this;
+        return target.replace(new RegExp(search, 'g'), replacement);
+    };
+    String.prototype.toTitleCase = function() {
+        var target = this;
+        return target.replace(/(?:^|\s)\w/g, function(match) {
+            return match.toUpperCase();
+        });
+    };
+    Array.prototype.remove_duplicates = function() {
+        var arr = this;
+        let s = new Set(arr);
+        let it = s.values();
+        return Array.from(it);
+    };
+
+    Array.prototype.remove_by_value = function(val) {
+      for (var i = 0; i < this.length; i++) {
+        if (this[i] === val) {
+          this.splice(i, 1);
+          i = i - 1;
+        }
+      }
+      return this;
+    };
+
+    (function(old) {
+      $.fn.attr = function() {
+        if(arguments.length === 0) {
+          if(this.length === 0) {
+            return null;
+          }
+
+          var obj = {};
+          $.each(this[0].attributes, function() {
+            if(this.specified) {
+              obj[this.name] = this.value;
+            }
+          });
+          return obj;
+        }
+
+        return old.apply(this, arguments);
+      };
+    })($.fn.attr);
+
+    function get_arcs(textblock_selector){
+        var attrs = $(textblock_selector).attr()
+        var arc_attrs = Object.keys(attrs).filter(function(d){return d.indexOf('arc') != -1})
+        var line_ids = arc_attrs.map(function(d){ return attrs[d]})
+        return line_ids
+            .filter(function(d) {return $('.' + d).length != 0 } )
+            .sort(function(d1, d2){ return d1.split('-')[1] - d2.split('-')[1]})
+    }
+
+     function connection_mouseover(){
+        // var left = $(this).attr('left')
+        // var right = $(this).attr('right')
+        // var new_html_x = $(this).attr('hidden-html-left')
+        // var new_html_y = $(this).attr('hidden-html-right')
+        // update
+        $(this).addClass('shaded')
+        $('#' + left).addClass('shaded')//.html(new_html_x)
+        $('#' + right).addClass('shaded')//.html(new_html_y)
+    }
+
+    function connection_mouseout(){
+        // var left = $(this).attr('left')
+        // var right = $(this).attr('right')
+        // var old_html_x = $('#' + left).attr('orig-html')
+        // var old_html_y = $('#' + right).attr('orig-html')
+        // update
+        $(this).removeClass('shaded')
+        $('#' + left).removeClass('shaded')//.html(old_html_x)
+        $('#' + right).removeClass('shaded')//.html(old_html_y)
+    }
+
+    // page handling
+    class PageManager {
+	constructor(
+	    textblock_dim,
+        demo,
+        check,
+        doc_key,
+        dropdown_buttons,
+        dropdown_arcs,
+        textblock_pool_min
+	) {
+		this.demo = demo
+		this.check = check
+		this.doc_key = doc_key
+		// dropdown buttons
+		this.dropdown_buttons = dropdown_buttons
+		this.dropdown_arcs = dropdown_arcs
+		// dimensions for textblock divs
+		this.textblock_pool_min = textblock_pool_min
+		this.textblock_dim = textblock_dim;
+		this.start_line_id = null
+		// z-index for dropdown needs to increase every click :/ maybe not the best implementation
+		this.curr_dropdown_zindex = 3
+	}
+
+	_get_new_connection_idx(){
+	    return $('.connection').length
+    }
+
+	_update_node_data_with_new_connection(textblock_x_selector, textblock_y_selector, line_selector){
+        // compare diff text for blocks directly connected by a line.
+        var x_arcs = get_arcs('#' + textblock_x_selector)
+        var y_arcs = get_arcs('#' + textblock_y_selector)
+        var x_arc_index = x_arcs.length + 1;
+        var y_arc_index = y_arcs.length + 1;
+        var text_x = $('#' + textblock_x_selector).attr('orig-text')
+        var text_y = $('#' + textblock_y_selector).attr('orig-text')
+        var htmls = html_compare_sentences(text_x, text_y)
+        var diff_ratio = get_word_diff_ratio(text_x, text_y)
+        var html_x = htmls[0]
+        var html_y = htmls[1]
+        $('.' + line_selector)
+				.attr('left', textblock_x_selector)
+				.attr('right', textblock_y_selector)
+				.attr('doc_id', this.doc_key)
+                .attr('hidden-html-left', html_x)
+                .attr('hidden-html-right', html_y)
+                .attr('word-diff-ratio', diff_ratio)
+
+        // update diff text for all lines leading into a node
+        $('#' + textblock_x_selector).attr('arc-' + x_arc_index, line_selector)
+        var x_arcs_new = get_arcs('#' + textblock_x_selector)
+        x_arcs_new = x_arcs_new
+            .sort(function( d1, d2) { return $('.' + d1).attr('right').split('-')[2] - $('.' + d2).attr('right').split('-')[2]})
+        var all_y_text_leading_to_x = []
+        x_arcs_new.forEach(function(d){
+            var node = $('.' + d)
+            var y_text = $('#' + node.attr('right')).attr('orig-text')
+            all_y_text_leading_to_x.push(y_text)
+        })
+        htmls = html_compare_sentences(text_x, all_y_text_leading_to_x.join(' '))
+        var x_html_all = htmls[0]
+        // $('#' + textblock_x_selector).attr('html-all', x_html_all)
+        $('#' + textblock_x_selector).html(x_html_all)
+
+
+        $('#' + textblock_y_selector).attr('arc-' + y_arc_index, line_selector)
+        var y_arcs_new = get_arcs('#' + textblock_y_selector)
+        y_arcs_new = y_arcs_new
+            .sort(function( d1, d2) { return $('.' + d1).attr('left').split('-')[2] - $('.' + d2).attr('left').split('-')[2]})
+        var all_x_text_leading_to_y = []
+        y_arcs_new.forEach(function(d){
+            var node = $('.' + d)
+            var x_text = $('#' + node.attr('left')).attr('orig-text')
+            all_x_text_leading_to_y.push(x_text)
+        })
+        htmls = html_compare_sentences(all_x_text_leading_to_y.join(' '), text_y)
+        var y_html_all = htmls[1]
+        // $('#' + textblock_y_selector).attr('html-all', y_html_all)
+        $('#' + textblock_y_selector).html(y_html_all)
+    }
+
+    // create a connection from input data (to re-create datapoints)
+    create_static_connection(left_textblock, right_textblock){
+    	var line_selector = 'line-' + this._get_new_connection_idx()
+        var textblock_x_selector = 'sentence-x-' + left_textblock
+        var textblock_y_selector = 'sentence-y-' + right_textblock
+
+        //
+        $('#' + textblock_x_selector).connections({
+			to: '#' + textblock_y_selector,
+			class: 'connection static ' + line_selector
+		})
+
+		// make dropdown
+		// this._make_right_click_line_dropdown(line_selector, textblock_x_selector, textblock_y_selector)
+        this._update_node_data_with_new_connection(textblock_x_selector, textblock_y_selector, line_selector)
+        return line_selector
+    }
+
+    create_textblock(selected_text, version, block_type, block_id){
+    	var that = this
+        // create textblock element for the righthand side
+        var textblock_pool = $(textblockpool_class_mapper[version]).filter(
+            function (d) {
+                return $(d).attr('doc_id') == this.doc_key
+            }
+        )
+        // create textblock div
+        var textblock_row = document.createElement('div')
+        $(textblock_row).addClass('row')
+        //
+        var textblock_div = document.createElement('div')
+        $(textblock_div)
+        	.addClass('textblock')
+        	.attr('doc_id', that.doc_key)
+	       	.attr('id', 'sentence-' + version + '-' + block_id)
+	       	.attr('label', block_type)
+            .attr('orig-text', selected_text)
+            .attr('orig-html', '<span class="textblock_span">' + selected_text + '</span>')
+            .attr('html-all', '<span class="textblock_span">' + selected_text + '</span>')
+
+        var textblock_span = document.createElement('span')
+        $(textblock_span).addClass('textblock_span')
+        textblock_span.textContent = selected_text
+        // append elements to the textblock
+        $(textblock_div).append(textblock_span)
+
+        if (! this.demo){
+            // handle line-drawing
+            $(textblock_div).bind('contextmenu', function(e) {
+    	        e.preventDefault();
+            	// that.handle_connection(this)
+            })
+        }
+
+        // append textblock to the pool of textblocks
+        $(textblock_row).append(textblock_div)
+    	$(textblock_row).appendTo(textblock_pool)
+		$(textblock_div).draggable();
+		// dynamically resize the height of the textblock pool
+        var multiplier = 2
+	    var new_height = d3.sum(
+	        textblock_pool.find('.textblock').map(function(i, d){
+     			return $(d).height() + multiplier * (
+ 	    		    that.textblock_dim.margin + that.textblock_dim.border + that.textblock_dim.padding
+                ) // 2 * (margin + border + padding)
+ 		}))
+       $(textblock_pool).css('height', d3.max([this.textblock_pool_min, new_height]))
+    }
+}
+
+    textblock_dims = {
+		'margin': 5,
+		'border': 2,
+		'padding': 10
+	}
+
+	textblock_pool_min_height = 200
+
+    buttons = [
+		['NODE', 'btn-outline-primary', 'node'],
+    ]
+    arcs = {
+        'NODE': {
+            'NODE': [],
+        }
+    }
+    pm = new PageManager(
+		textblock_dims, false, false,
+		"{{ doc_id }}", buttons, arcs,
+		textblock_pool_min_height
+	)
+
+    var data = JSON.parse('{{ data | tojson | safe }}'.replaceAll('NaN', 'null'))
+    var versions = data['nodes'].map(function(d){return d['version']})
+    var x_vers = d3.min(versions)
+    var y_vers = d3.max(versions)
+    var x_versions = []
+    var y_versions = []
+    $(data.nodes).each(function (i, d) {
+       if(d.version == x_vers) {
+           pm.create_textblock(d.sentence, 'x', 'NODE', d.sent_idx)
+           x_versions.push(d.sent_idx)
+       } else {
+           pm.create_textblock(d.sentence, 'y', 'NODE', d.sent_idx)
+           y_versions.push(d.sent_idx)
+       }
+    })
+
+    $(data.arcs).each( function(i, d){
+        if ((d.sent_idx_x != null ) && (d.sent_idx_y != null)){
+            var sel = pm.create_static_connection(d.sent_idx_x, d.sent_idx_y, null)
+            d.line_selector = sel
+            x_versions.remove_by_value(d.sent_idx_x)
+            y_versions.remove_by_value(d.sent_idx_y)
+        }
+        // sentence is added (exists in y)
+        if (d.sent_idx_x == null){
+            var textblock_sel = '#sentence-y-' + d.sent_idx_y
+            $(textblock_sel).addClass('added')
+            y_versions.remove_by_value(d.sent_idx_y)
+        }
+        // sentence is removed (exists in x)
+        if (d.sent_idx_y == null){
+            var textblock_sel = '#sentence-x-' + d.sent_idx_x
+            $(textblock_sel).addClass('deleted')
+            x_versions.remove_by_value(d.sent_idx_x)
+        }
+    })
+    $(x_versions).each(function(i, d){
+        $('#sentence-x-' + d).addClass('deleted')
+    })
+    $(y_versions).each(function(i, d){
+        $('#sentence-y-' + d).addClass('added')
+    })
+
+
+
+
+     // make lines follow the main
+     $.repeat().add('connection').each($).connections('update').wait(0);
+
+     // handle floating div
+     var $mouseX = 0, $mouseY = 0;
+     var $xp = 0, $yp =0;
+     $(document).mousemove(function(e){
+         $mouseX = e.pageX;
+         $mouseY = e.pageY - window.scrollY;
+     });
+
+     // handle updating lines on draggable
+     var $loop = setInterval(function(){
+       $xp += (($mouseX - $xp)/2);
+       $yp += (($mouseY - $yp)/2);
+       $("#moving_div").css({left:$xp +'px', top:$yp +'px'});
+     }, 30);
+
+
+    // make mouseover highlights for connections and textblocks
+    $('.connection')
+        .on('mouseover', connection_mouseover)
+        .on('mouseout', connection_mouseout)
+
+    $('.textblock')
+        .on('mouseover', function(){
+            var this_textblock_selector = $(this).attr('id')
+            if (this_textblock_selector.indexOf('x') == -1){ // there isn't an x in the side we're currently on
+                var other_side = 'left'
+            } else{
+                var other_side = 'right'
+            }
+
+            // update the current node.
+            // var our_html = $(this).attr('html-all')
+            $(this).addClass('shaded')//.html('<span class="textblock_span">' + our_html + '</span>')
+
+            // update all the nodes on the other side as this node.
+            var node_arcs = get_arcs(this)
+            node_arcs.forEach(function(d){
+                // shade the arc itself
+                $('.' + d).addClass('shaded')
+                // get other textblock and the html that it should update to.
+                var other_textblock = $('.' + d).attr(other_side)
+                // var other_new_html = $('.' + d).attr('hidden-html-' + other_side)
+                // shade the other textblock that the arc connects
+                $('#' + other_textblock).addClass('shaded')//.html(other_new_html)
+            })
+        })
+        .on('mouseout', function(d) {
+            $('.connection').removeClass('shaded')
+            $('.textblock').removeClass('shaded')
+            // $('.textblock').each(function (i, d) {
+            //     var orig_html = $(d).attr('orig-html')
+            //     $(d).html(orig_html)
+            // })
+        })
+
+    //
+    // mturk
+    //
+    // handle data
+    //
+    class SubmitHandler{
+        constructor() {
+            turkSetAssignmentID();
+            this.GENERIC_THANKS_MESSAGE = 'Thank you so much for your help with our task!'
+        }
+
+        _format_data(d, question_class){
+            if (question_class == 'connections removed'){
+                var orig_line = data.arcs.filter(function(c){ return c.line_selector == d})[0]
+                return {
+                    "doc_id": "{{ doc_id }}",
+                    "question_class": question_class,
+                    "sent_idx_x": orig_line['sent_idx_x'],
+                    "sent_idx_y": orig_line['sent_idx_y'],
+                    'version_x': x_vers,
+                    'version_y': y_vers,
+                }
+            }
+            else {
+                return {
+                    "doc_id": "{{ doc_id }}",
+                    "question_class": question_class,
+                    "sent_idx_x": $('.' + d).attr('left').split('-')[2],
+                    "sent_idx_y": $('.' + d).attr('right').split('-')[2],
+                    'version_x': x_vers,
+                    'version_y': y_vers,
+                }
+            }
+        }
+
+        get_data_from_dom() {
+            var that = this
+            this.output = {
+                'doc_id': "{{ doc_id }}",
+                'connections_removed': [],
+                'connections_added': [],
+                'connections_final': [],
+            }
+
+            // get data from the dom
+            var lines_at_start = []
+            data.arcs.forEach(function (d) {
+                if ((d.sent_idx_x != null) && (d.sent_idx_y != null)) {
+                    lines_at_start.push( d.line_selector)
+                }
+            })
+            var lines_at_end = []
+            $('.connection').each(function (i, d) {
+                lines_at_end.push(
+                    $(d).attr('class')
+                        .split(/\s+/)
+                        .filter(function (d) {
+                            return d.indexOf('line') != -1
+                        })[0]
+                )
+            })
+
+            var lines_removed = lines_at_start.filter(function (x, i) {
+                return lines_at_end.indexOf(x) < 0
+            })
+            var lines_added = lines_at_end.filter(function (x, i) {
+                return lines_at_start.indexOf(x) < 0
+            })
+
+            // put in this class
+            lines_removed.forEach(function(d){
+                that.output['connections_removed'].push(that._format_data(d, 'connections removed'))
+            })
+            lines_added.forEach(function(d){
+                that.output['connections_added'].push(that._format_data(d, 'connections added'))
+            })
+            lines_at_end.forEach(function(d){
+                that.output['connections_final'].push(that._format_data(d, 'connections final'))
+            })
+            this.num_lines_added = lines_added.length
+            this.num_lines_removed = lines_removed.length
+            this.output['num_connections_added'] = this.num_lines_added
+            this.output['num_connections_removed'] = this.num_lines_removed
+        }
+
+        gather_and_submit_data(submit_button, submit_click_event) {
+            this.submit_button = submit_button
+            this.submit_click_event = submit_click_event
+            this.get_data_from_dom()
+            this.first_confirm() // -> second_confirm -> third_confirm -> submit_data
+        }
+
+        first_confirm(){
+            var that = this
+            // First question
+            alertify.confirm(
+                    "You\'ve added " + this.num_lines_added + " lines and removed " + this.num_lines_removed + ". Is this correct?",
+            ).set('header', '<em>Checking number of connections drawn/removed...</em>')
+             .set('labels', {
+                        ok: "Continue, submit!",
+                        cancel: "Let me recheck..."
+                    })
+                 .set('onok', function () {
+                        that.second_confirm()
+                    })
+                 .set('oncancel', function() {
+                        alertify.error('Thanks for being diligent! Please recheck and resubmit!')
+                    })
+        }
+
+        second_confirm(){
+            var that = this
+            setTimeout(function() {
+                var word_diff_ratios = $('.connection').map(function (i, d) {
+                    return $(d).attr('word-diff-ratio')
+                })
+                var low_ratios = word_diff_ratios.filter(function (i, d) {return d < .2})
+                // Second Question.
+                if (low_ratios.length > 0) {
+                    alertify.confirm(
+                        /* message */ low_ratios.length + " connections have very low word-overlap. Are you sure they are correct?",
+                    )
+                        .set('header', '<em>Checking all word overlaps...</em>')
+                        .set('labels', {
+                            ok: "Continue, submit!",
+                            cancel: "Let me recheck..."
+                        })
+                        .set('onok', function () {
+                            that.third_confirm()
+                        })
+                        .set('oncancel', function () {
+                            alertify.error('Thanks for being diligent! Please recheck and resubmit!')
+                        })
+                        // .set('onclose', function () { });
+                 // otherwise, skip straight to the final confirm
+                } else {
+                    that.third_confirm()
+                }
+            }, 700)
+        }
+
+        third_confirm(){
+            var that = this
+            setTimeout(function() {
+                alertify.confirm(
+                    "Great! Your submission is valid. Do you want to recheck your answers?"
+                ).set('header', '<em>Looks good! Ready to Submit?</em>')
+                    .set('labels', {
+                        ok: "Continue, submit!",
+                        cancel: "Let me recheck..."
+                    })
+                    .set('onok', function () {
+                        alertify.success('Ok! Submitting...')
+                        alertify.success(that.GENERIC_THANKS_MESSAGE)
+                        that.submit_data()
+                    })
+                    .set('oncancel', function () {
+                        alertify.error('Thanks for being diligent! Please recheck and resubmit!')
+                    })
+            }, 700)
+        }
+        submit_data(){
+            {% if do_mturk %}
+            // submit mturk
+            $('#data').attr('value', JSON.stringify(this.output))
+            $(this.submit_button).trigger(this.submit_click_event.type);
+            {% else %}
+            // submit AJAX
+            this.output['start_time'] = "{{ start_time }}"
+            $.ajax({
+                url: "/post_task",
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(this.output),
+                success: function (result) {
+                    if (result === "success") location.href = "/view_task"
+                }
+            })
+            {% endif %}
+        }
+    }
+
+    // submit button click
+    var clicked=false
+    $('#submitButton').on('click', function(submit_click_event){
+        var sh = new SubmitHandler()
+        var submit_button = this
+        submit_click_event.preventDefault();
+        sh.gather_and_submit_data(submit_button, submit_click_event);
+    })
+
+</script>
+</body>
+</html>

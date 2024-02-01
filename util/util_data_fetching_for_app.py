@@ -102,14 +102,16 @@ def match_sentences(matched_sentences, split_sentences):
           ).drop(['version', 'sent_idx'], axis=1)
     )
 
+    output_cols = ['version_x', 'version_y', 'sent_idx_x', 'sent_idx_y']
+    if 'avg_sentence_distance_x' in matched_sentences.columns:
+        output_cols += ['avg_sentence_distance_x', 'avg_sentence_distance_y']
+    if 'label' in matched_sentences.columns:
+        output_cols.append('label')
+
     grouped_arcs = (
         matched_sentences
          .groupby(['source', 'entry_id', 'version_x', 'version_y'])
-         .apply(lambda df:
-            df[['version_x', 'version_y', 'sent_idx_x', 'sent_idx_y',
-                'avg_sentence_distance_x', 'avg_sentence_distance_y'
-               ]].to_dict(orient='records')
-         )
+         .apply(lambda df: df[output_cols].to_dict(orient='records'))
          .to_frame('arcs')
     )
 
@@ -117,12 +119,17 @@ def match_sentences(matched_sentences, split_sentences):
     split_sentences['sentence'] = split_sentences['sentence'].str.replace('"', '\'\'')
     split_sentences['sentence'] = split_sentences['sentence'].str.replace('<p>', '').str.replace('</p>', '').str.strip()
 
+    output_cols = ['version', 'sent_idx', 'sentence']
+    if 'label' in split_sentences:
+        output_cols.append('label')
+
     grouped_nodes = (
         split_sentences
          .groupby(['source', 'entry_id', 'version'])
-         .apply(lambda df: df[['version', 'sent_idx', 'sentence']]
-         .to_dict(orient='records'))
-         .to_frame('nodes').reset_index()
+         .apply(lambda df: 
+            df[output_cols]
+                    .to_dict(orient='records'))
+                    .to_frame('nodes').reset_index()
     )
     matched_grouped_nodes = (
         grouped_nodes
